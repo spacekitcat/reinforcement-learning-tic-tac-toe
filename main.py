@@ -114,7 +114,7 @@ def calculate_board_fitness(board, player):
   if detect_win_state(board) == None:
     return 0.25
   elif Player(detect_win_state(board)) == player:
-    return 10.0
+    return 1.0
   elif Player(detect_win_state(board)) == opponent:
     return -10.0
   elif get_current_move(board) == 9:
@@ -254,16 +254,25 @@ def calculate_ratio(o_wins, x_wins):
 
   return o_wins / x_wins
 
-explore = 90
+explore = 80
 def computer_compute_move(root, depth=8):
   global explore
-  if root.parent == None or explore < random.randint(0, 101):
+  if explore < random.randint(0, 101):
     return random.choice(root.get_children())
 
   return root.get_next_move()
 
+def compute_random_move_set():
+  return [random.randint(0, i) for i in reversed(range(0, 9, 2))]
+
 def computer_random_move(root):
   return random.choice(root.get_children())
+
+def select_move_by_index(root, index):
+  if index > len(root.get_children()):
+    return root.get_children()[-1]
+
+  return root.get_children()[index]
 
 _game_counter = 0
 _draws = 0
@@ -283,6 +292,7 @@ root.get_children()
 _cohort_size = 1000
 _generation_size = 100 * _cohort_size
 
+random_move_set = compute_random_move_set()
 while True:
   head = root
   if _game_counter == 0 or _game_counter % _generation_size == 0:
@@ -303,16 +313,18 @@ while True:
     _x_wins = 0
     _o_wins = 0
 
-  while head.has_children():
-    if _game_counter > _games_to_play:
-      explore = 105
-      head.display_board()
+  if _game_counter > _games_to_play:
+    explore = 105
+    head.display_board()
 
+  move_index = 0
+  while head.has_children():
     if head.get_player() == Player.X:
       if _game_counter > _games_to_play:
         head = menu_prompt(head)
       else:
-        head = computer_random_move(head)
+        head = select_move_by_index(head, random_move_set[move_index])
+        move_index = move_index + 1
     else:
         
       new_head = computer_compute_move(head)
@@ -327,6 +339,7 @@ while True:
       head.propagate_score()
       if head.get_previous_player() == Player.X:
         _x_wins += 1
+        random_move_set = compute_random_move_set()
       else:
         _o_wins += 1
       break
