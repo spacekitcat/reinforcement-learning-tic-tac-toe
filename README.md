@@ -33,7 +33,15 @@ python3 main.py
 
 ## Results
 
-After a million games, the best I can do is draw against it. I will have to setup a game pitting the output policy against minimax to check for weaknesses.
+I like to think that tic-tac-toe has three classes of AI policy:
+
+- Class 1: Understands the rules, is able to form a line and block a line. Has a 50/50 chance of winning/losing against other class 1 players. Will lose against Class 2 or above.
+- Class 2: Knows at least one predicament scenario and how to block most of them, will win against class 1 players, will draw with class 2 players, might occasionally be caught off guard by a class 3 policy.
+- Class 3: Knows all of the predicament scenario and how to block all of them, will never do worse than a draw against any policy.
+
+From my evaluations, the worst policy the training algorithm produces is a class 1 policy. It's more likely to produce a class 2 and will sometimes produce a class 3 policy.
+
+I'd like to fine tune the training to consistently produce a class 3 policy. I think a higher number of generations would improve the chances, but I feel there's room to improve the learning efficiency of the algorithm to get more out of each training generation. The first area I'd want to look at is the explore/exploit ratio, I think this needs to by dynamically adjusted with some selection criteria for finding the optimal value. The second thing I'd like to look at is enhancing the bad game replay mechanism to collect replay games with good learning potential that it replays periodically.
 
 ## Next steps
 

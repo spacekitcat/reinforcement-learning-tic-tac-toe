@@ -16,27 +16,34 @@ class Player(Enum):
   X = 1
   O = 2
 
+class console_colours:
+  PURPLE = '\033[95m'
+  GREEN = '\033[92m'
+  RED = '\033[91m'
+  CYAN = '\033[96m'
+  ENDC = '\033[0m'
+
 def standardPositionRenderer(position, space):
-  position_str = '\033[96m | \033[0m'
+  position_str = f'{console_colours.CYAN} | {console_colours.ENDC}'
   if position == Player.X.value:
-    position_str += f'\033[91m{Player.X.name}\033[0m'
+    position_str += f'{console_colours.RED}{Player.X.name}{console_colours.ENDC}'
   elif position == Player.O.value:
-    position_str += f'\033[92m{Player.O.name}\033[0m'
+    position_str += f'{console_colours.GREEN}{Player.O.name}{console_colours.ENDC}'
   else:
     position_str += f'{space}'
 
   return position_str
 
 def row_separator_renderer(column_count):
-  separator = '\033[96m -\033[0m'
+  separator = f'{console_colours.CYAN} -{console_colours.ENDC}'
   for j in range(0, column_count):
-    separator += '\033[96m----\033[0m'
+    separator += f'{console_colours.CYAN}----{console_colours.ENDC}'
   separator += '\n'
 
   return separator
 
 def row_terminator_renderer():
-  return '\033[96m | \033[0m\n'
+  return f'{console_colours.CYAN} | {console_colours.ENDC}\n'
 
 def value_is_neutral(value):
   return value != Player.X.value and value != Player.O.value
@@ -274,6 +281,22 @@ def select_move_by_index(root, index):
 
   return root.get_children()[index]
 
+def get_row(cells, colour, spacing=9):
+  row = f"{colour}"
+  for cell in cells:
+    row = row + cell.rjust(spacing)
+
+  return row + f'{console_colours.ENDC}'
+
+def is_progression(ratio, global_ratio):
+  return ratio < global_ratio
+
+def should_render_heading(game_counter, generation_size):
+  return game_counter == 0 or game_counter % generation_size == 0
+
+def should_render_stats(game_counter, cohort_size):
+  return game_counter > 0 and game_counter % cohort_size == 0
+
 _game_counter = 0
 _draws = 0
 _x_wins = 0
@@ -295,26 +318,40 @@ _generation_size = 100 * _cohort_size
 random_move_set = compute_random_move_set()
 while True:
   head = root
-  if _game_counter == 0 or _game_counter % _generation_size == 0:
-    print()
-    print(f'\tGAME\tRATIO\tLOSSES\tWINS\tDRAWS\tGLOBAL\t')
+  if should_render_heading(_game_counter, _generation_size):
+    print(get_row([
+        "GAME",
+        "RATIO",
+        "LOSSES",
+        "WINS",
+        "DRAWS",
+        "GLOBAL",
+      ],
+      console_colours.PURPLE))
 
-  if _game_counter > 0 and _game_counter % _cohort_size == 0:
+  if should_render_stats(_game_counter, _cohort_size):
     _ratio = calculate_ratio(_o_wins + _draws, _x_wins)
     _global_sum = _global_sum + _ratio
     _generation = _generation + 1
+    _global_sum_ratio = _global_sum / _generation
     
-    
-    if _ratio < _global_sum / _generation:
-      print(f'\t\033[91m{_game_counter}\t{_ratio:3.2f}\t{_x_wins}\t{_o_wins}\t{_draws}\t{(_global_sum/_generation):3.2f}\033[0m')
-    else:
-      print(f'\t\033[92m{_game_counter}\t{_ratio:3.2f}\t{_x_wins}\t{_o_wins}\t{_draws}\t{(_global_sum/_generation):3.2f}\033[0m')
+    print(get_row(
+      [
+        str(_game_counter),
+        str(f'{_ratio:3.2f}'),
+        str(_x_wins),
+        str(_o_wins),
+        str(_draws),
+        str(f'{_global_sum_ratio:3.2f}')
+      ],
+      console_colours.RED if is_progression(_ratio, _global_sum_ratio) else console_colours.GREEN))
+
     _draws = 0
     _x_wins = 0
     _o_wins = 0
 
   if _game_counter > _games_to_play:
-    explore = 105
+    explore = 101
     head.display_board()
 
   move_index = 0
