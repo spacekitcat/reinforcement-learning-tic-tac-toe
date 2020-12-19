@@ -204,10 +204,13 @@ while True:
   if should_render_heading(_game_state.get_global_game_count(), _generation_size):
     print(render_table_row([
         "GAME",
+        "LOSSES(L)",
+        "WINS(L)",
+        "DRAWS(L)",
         "ERROR(L)",
-        "LOSSES",
-        "WINS",
-        "DRAWS",
+        "LOSSES(G)",
+        "WINS(G)",
+        "DRAWS(G)",
         "ERROR(G)",
       ],
       ConsoleColours.PURPLE))
@@ -217,10 +220,13 @@ while True:
     print(render_table_row(
       [
         str(_game_state.get_global_game_count()),
-        str(f'{_game_state.get_local_error_rate():3.2f}'),
         str(_game_state.get_local_x_win_count()),
         str(_game_state.get_local_o_win_count()),
         str(_game_state.get_local_draw_count()),
+        str(f'{_game_state.get_local_error_rate():3.2f}'),
+        str(_game_state.get_global_x_win_count()),
+        str(_game_state.get_global_o_win_count()),
+        str(_game_state.get_global_draw_count()),
         str(f'{_game_state.get_global_error_rate():3.2f}')
       ],
       ConsoleColours.RED if _game_state.has_local_error_improvement() else ConsoleColours.GREEN))
