@@ -161,15 +161,6 @@ class Node():
         highest = child
 
     return highest
-  
-def calculate_ratio(o_wins, x_wins):
-  if o_wins == 0:
-    return 0
-  
-  if x_wins == 0:
-    return o_wins
-
-  return o_wins / x_wins
 
 explore = 80
 def computer_compute_move(root, depth=8):
