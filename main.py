@@ -173,17 +173,11 @@ def computer_compute_move(root, depth=8):
 def compute_random_move_set():
   return [random.randint(0, i) for i in reversed(range(0, 9, 2))]
 
-def computer_random_move(root):
-  return random.choice(root.get_children())
-
 def select_move_by_index(root, index):
   if index > len(root.get_children()):
     return root.get_children()[-1]
 
   return root.get_children()[index]
-
-def is_progression(ratio, global_ratio):
-  return ratio > global_ratio
 
 def should_render_heading(game_counter, generation_size):
   return game_counter == 0 or game_counter % generation_size == 0
@@ -194,7 +188,6 @@ def should_render_stats(game_counter, cohort_size):
 _games_to_play = 1000000
 # _games_to_play = 1000
 
-_global_sum = 0
 _generation = 0
 
 root = Node()
@@ -220,22 +213,17 @@ while True:
       ConsoleColours.PURPLE))
 
   if should_render_stats(_game_state.get_global_game_count(), _cohort_size):
-    _ratio = _game_state.get_error_rate()
-    _global_sum = _global_sum + _ratio
-    
     _generation = _generation + 1
-    _global_sum_ratio = _global_sum / _generation
-    
     print(render_table_row(
       [
         str(_game_state.get_global_game_count()),
-        str(f'{_ratio:3.2f}'),
+        str(f'{_game_state.get_local_error_rate():3.2f}'),
         str(_game_state.get_local_x_win_count()),
         str(_game_state.get_local_o_win_count()),
         str(_game_state.get_local_draw_count()),
-        str(f'{_global_sum_ratio:3.2f}')
+        str(f'{_game_state.get_global_error_rate():3.2f}')
       ],
-      ConsoleColours.RED if is_progression(_ratio, _global_sum_ratio) else ConsoleColours.GREEN))
+      ConsoleColours.RED if _game_state.has_local_error_improvement() else ConsoleColours.GREEN))
 
     _game_state.reset_local()
 
@@ -265,13 +253,13 @@ while True:
       head.update_score()
       head.propagate_score()
       if head.get_previous_player() == Player.X:
-        _game_state.increment_local_x_win_counter()
+        _game_state.increment_x_win_counter()
         random_move_set = compute_random_move_set()
       else:
-        _game_state.increment_local_o_win_counter()
+        _game_state.increment_o_win_counter()
       break
 
   if not head.has_win_state():
-    _game_state.increment_local_draw_counter()
+    _game_state.increment_draw_counter()
 
   _game_state.increment_global_game_counter()

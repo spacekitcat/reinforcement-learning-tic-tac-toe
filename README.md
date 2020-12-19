@@ -14,11 +14,9 @@ Each node can generate a list of child nodes, each one describes an action and t
 
 The program drops into interactive mode after training so that the policy can be evaluated.
 
-N.B. The first decision is always random because you can force a draw from any move made in move 1 (X) or move 2 (O), randomizing the first move is a hack to stop it over training one specific path at the expense of all others.
-
 ## Performance
 
-It's reasonably fast, I estimate it can do 1000 games a second.
+It's reasonably fast, I estimate it can do 1500 games a second.
 
 ## Running
 
