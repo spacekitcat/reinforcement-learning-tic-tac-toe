@@ -10,6 +10,7 @@ from rendering.display_user_input_menu import display_user_input_menu
 from logic.Player import Player
 from logic.value_is_neutral import value_is_neutral
 from logic.ai.QTable import QTable
+from logic.GameState import GameState
 
 def get_available_moves(board):
   available_moves = []
@@ -191,7 +192,7 @@ def select_move_by_index(root, index):
   return root.get_children()[index]
 
 def is_progression(ratio, global_ratio):
-  return ratio < global_ratio
+  return ratio > global_ratio
 
 def should_render_heading(game_counter, generation_size):
   return game_counter == 0 or game_counter % generation_size == 0
@@ -199,70 +200,66 @@ def should_render_heading(game_counter, generation_size):
 def should_render_stats(game_counter, cohort_size):
   return game_counter > 0 and game_counter % cohort_size == 0
 
-_game_counter = 0
-_draws = 0
-_x_wins = 0
-_o_wins = 0
-
 _games_to_play = 1000000
+# _games_to_play = 1000
+
 _global_sum = 0
-_global_draws = 0
-_global_x_wins = 0
-_global_o_wins = 0
 _generation = 0
 
 root = Node()
 root.get_children()
 
 _cohort_size = 1000
+# _cohort_size = 100
+_game_state = GameState(_cohort_size)
 _generation_size = 100 * _cohort_size
 
 random_move_set = compute_random_move_set()
 while True:
   head = root
-  if should_render_heading(_game_counter, _generation_size):
+  if should_render_heading(_game_state.get_global_game_count(), _generation_size):
     print(render_table_row([
         "GAME",
-        "RATIO",
+        "ERROR(L)",
         "LOSSES",
         "WINS",
         "DRAWS",
-        "GLOBAL",
+        "ERROR(G)",
       ],
       ConsoleColours.PURPLE))
 
-  if should_render_stats(_game_counter, _cohort_size):
-    _ratio = calculate_ratio(_o_wins + _draws, _x_wins)
+  if should_render_stats(_game_state.get_global_game_count(), _cohort_size):
+    _ratio = _game_state.get_error_rate()
     _global_sum = _global_sum + _ratio
+    
     _generation = _generation + 1
     _global_sum_ratio = _global_sum / _generation
     
     print(render_table_row(
       [
-        str(_game_counter),
+        str(_game_state.get_global_game_count()),
         str(f'{_ratio:3.2f}'),
-        str(_x_wins),
-        str(_o_wins),
-        str(_draws),
+        str(_game_state.get_local_x_win_count()),
+        str(_game_state.get_local_o_win_count()),
+        str(_game_state.get_local_draw_count()),
         str(f'{_global_sum_ratio:3.2f}')
       ],
       ConsoleColours.RED if is_progression(_ratio, _global_sum_ratio) else ConsoleColours.GREEN))
 
-    _draws = 0
-    _x_wins = 0
-    _o_wins = 0
+    _game_state.reset_local()
 
-  if _game_counter > _games_to_play:
+  if _game_state.get_global_game_count() > _games_to_play:
     explore = 101
     head.display_board()
 
   move_index = 0
   while head.has_children():
     if head.get_player() == Player.X:
-      if _game_counter > _games_to_play:
+      if _game_state.get_global_game_count() > _games_to_play:
         head = display_user_input_menu(head)
       else:
         head = select_move_by_index(head, random_move_set[move_index])
+        
         move_index = move_index + 1
     else:
         
@@ -270,20 +267,20 @@ while True:
       head.set_score(new_head.get_score())
       head = new_head
 
-    if _game_counter > _games_to_play:
+    if _game_state.get_global_game_count() > _games_to_play:
       head.display_board()
 
     if head.has_win_state():
       head.update_score()
       head.propagate_score()
       if head.get_previous_player() == Player.X:
-        _x_wins += 1
+        _game_state.increment_local_x_win_counter()
         random_move_set = compute_random_move_set()
       else:
-        _o_wins += 1
+        _game_state.increment_local_o_win_counter()
       break
 
   if not head.has_win_state():
-    _draws += 1
+    _game_state.increment_local_draw_counter()
 
-  _game_counter += 1
+  _game_state.increment_global_game_counter()
