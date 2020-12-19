@@ -68,7 +68,7 @@ class GameState():
     return ((1.0 / self.get_global_game_count()) * self.get_global_x_win_count())
 
   def has_local_error_improvement(self):
-    return self.get_local_error_rate() > self.get_global_error_rate()
+    return self.get_local_error_rate() >= self.get_global_error_rate()
 
   def reset_local(self):
     self._local_draw_counter = 0

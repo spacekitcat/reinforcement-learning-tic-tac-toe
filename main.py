@@ -223,11 +223,11 @@ while True:
         str(_game_state.get_local_x_win_count()),
         str(_game_state.get_local_o_win_count()),
         str(_game_state.get_local_draw_count()),
-        str(f'{_game_state.get_local_error_rate():3.2f}'),
+        str(f'{_game_state.get_local_error_rate():3.5f}'),
         str(_game_state.get_global_x_win_count()),
         str(_game_state.get_global_o_win_count()),
         str(_game_state.get_global_draw_count()),
-        str(f'{_game_state.get_global_error_rate():3.2f}')
+        str(f'{_game_state.get_global_error_rate():3.5f}')
       ],
       ConsoleColours.RED if _game_state.has_local_error_improvement() else ConsoleColours.GREEN))
 
