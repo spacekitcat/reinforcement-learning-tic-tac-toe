@@ -1,18 +1,12 @@
-import sys
-import qprompt
 import random
 from copy import deepcopy
 from itertools import groupby
 import numpy as np
 from scipy.ndimage import rotate
-from rich.progress import (
-    BarColumn,
-    TimeRemainingColumn,
-    Progress,
-)
 from rendering.ConsoleColours import ConsoleColours
 from rendering.display_board import display_board
 from rendering.render_table_row import render_table_row
+from rendering.display_user_input_menu import display_user_input_menu
 from logic.Player import Player
 from logic.value_is_neutral import value_is_neutral
 
@@ -24,17 +18,6 @@ def get_available_moves(board):
         available_moves.append((i, j))
 
   return available_moves
-
-def create_menu(node_list):
-  menu = qprompt.Menu()
-  for i in range(0, len(node_list)):
-    menu.add(str(i), node_list[i])
-
-  return menu
-
-def menu_prompt(root):
-  menu = create_menu(root.get_children())
-  return menu.show(returns="desc", header=str.format("Turn {}, {} to move", root.get_move_count(), root.get_player()))
 
 def set_board_position(board, position, value):
   x, y = position
@@ -299,7 +282,7 @@ while True:
   while head.has_children():
     if head.get_player() == Player.X:
       if _game_counter > _games_to_play:
-        head = menu_prompt(head)
+        head = display_user_input_menu(head)
       else:
         head = select_move_by_index(head, random_move_set[move_index])
         move_index = move_index + 1
