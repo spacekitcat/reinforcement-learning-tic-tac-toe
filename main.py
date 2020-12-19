@@ -9,6 +9,7 @@ from rendering.render_table_row import render_table_row
 from rendering.display_user_input_menu import display_user_input_menu
 from logic.Player import Player
 from logic.value_is_neutral import value_is_neutral
+from logic.ai.QTable import QTable
 
 def get_available_moves(board):
   available_moves = []
@@ -72,29 +73,6 @@ def get_current_player(board):
       return Player.O
 
     return Player.X
-
-def board_hash(board):
-  b_hash = ''
-  for row in board:
-    for cell in row:
-      b_hash = b_hash + '' + str(cell)
-
-  return b_hash
-
-class QTable():
-  def __init__(self):
-    self.table = {}
-
-  def put_state(self, board, score):
-    self.table[board_hash(board)] = score
-
-  def get_state(self, board):
-    if self.has_state(board):
-      return self.table[board_hash(board)]
-    return (0, 0)
-
-  def has_state(self, board):
-    return board_hash(board) in self.table
 
 class Node():
   def __init__(self):
