@@ -1,7 +1,6 @@
 import sys
 import qprompt
 import random
-from enum import Enum
 from copy import deepcopy
 from itertools import groupby
 import numpy as np
@@ -11,62 +10,11 @@ from rich.progress import (
     TimeRemainingColumn,
     Progress,
 )
-
-class Player(Enum):
-  X = 1
-  O = 2
-
-class console_colours:
-  PURPLE = '\033[95m'
-  GREEN = '\033[92m'
-  RED = '\033[91m'
-  CYAN = '\033[96m'
-  ENDC = '\033[0m'
-
-def standardPositionRenderer(position, space):
-  position_str = f'{console_colours.CYAN} | {console_colours.ENDC}'
-  if position == Player.X.value:
-    position_str += f'{console_colours.RED}{Player.X.name}{console_colours.ENDC}'
-  elif position == Player.O.value:
-    position_str += f'{console_colours.GREEN}{Player.O.name}{console_colours.ENDC}'
-  else:
-    position_str += f'{space}'
-
-  return position_str
-
-def row_separator_renderer(column_count):
-  separator = f'{console_colours.CYAN} -{console_colours.ENDC}'
-  for j in range(0, column_count):
-    separator += f'{console_colours.CYAN}----{console_colours.ENDC}'
-  separator += '\n'
-
-  return separator
-
-def row_terminator_renderer():
-  return f'{console_colours.CYAN} | {console_colours.ENDC}\n'
-
-def value_is_neutral(value):
-  return value != Player.X.value and value != Player.O.value
-
-def display_board(board, indent=0):
-  space = 0
-  for i in range(0, indent):
-    sys.stdout.write('\t')
-  for b in range(0, indent):
-    sys.stdout.write('\t')
-  sys.stdout.write(row_separator_renderer(len(board[0])))
-  for i in board:
-    for b in range(0, indent):
-      sys.stdout.write('\t')
-    for j in i:
-      sys.stdout.write(standardPositionRenderer(j, space))
-      if value_is_neutral(j):
-        space = space + 1
-    sys.stdout.write(row_terminator_renderer())
-    for b in range(0, indent):
-      sys.stdout.write('\t')
-
-    sys.stdout.write(row_separator_renderer(len(i)))
+from rendering.ConsoleColours import ConsoleColours
+from rendering.display_board import display_board
+from rendering.render_table_row import render_table_row
+from logic.Player import Player
+from logic.value_is_neutral import value_is_neutral
 
 def get_available_moves(board):
   available_moves = []
@@ -281,13 +229,6 @@ def select_move_by_index(root, index):
 
   return root.get_children()[index]
 
-def get_row(cells, colour, spacing=9):
-  row = f"{colour}"
-  for cell in cells:
-    row = row + cell.rjust(spacing)
-
-  return row + f'{console_colours.ENDC}'
-
 def is_progression(ratio, global_ratio):
   return ratio < global_ratio
 
@@ -319,7 +260,7 @@ random_move_set = compute_random_move_set()
 while True:
   head = root
   if should_render_heading(_game_counter, _generation_size):
-    print(get_row([
+    print(render_table_row([
         "GAME",
         "RATIO",
         "LOSSES",
@@ -327,7 +268,7 @@ while True:
         "DRAWS",
         "GLOBAL",
       ],
-      console_colours.PURPLE))
+      ConsoleColours.PURPLE))
 
   if should_render_stats(_game_counter, _cohort_size):
     _ratio = calculate_ratio(_o_wins + _draws, _x_wins)
@@ -335,7 +276,7 @@ while True:
     _generation = _generation + 1
     _global_sum_ratio = _global_sum / _generation
     
-    print(get_row(
+    print(render_table_row(
       [
         str(_game_counter),
         str(f'{_ratio:3.2f}'),
@@ -344,7 +285,7 @@ while True:
         str(_draws),
         str(f'{_global_sum_ratio:3.2f}')
       ],
-      console_colours.RED if is_progression(_ratio, _global_sum_ratio) else console_colours.GREEN))
+      ConsoleColours.RED if is_progression(_ratio, _global_sum_ratio) else ConsoleColours.GREEN))
 
     _draws = 0
     _x_wins = 0
